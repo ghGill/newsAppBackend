@@ -2,6 +2,7 @@ const AWS = require('aws-sdk');
 const STORAGE_BASE = require('./storage_base');
 const { envVar } = require('./env');
 const multer = require("multer");
+const fs = require("fs");
 
 class STORAGE_S3 extends STORAGE_BASE {
     constructor() {
@@ -14,14 +15,19 @@ class STORAGE_S3 extends STORAGE_BASE {
         });
 
         this.publicUrl = `https://${envVar('AWS_BUCKET')}.s3.${envVar('AWS_REGION')}.amazonaws.com`;
-        this.upload = multer({ storage: multer.memoryStorage() });
+
+        // memory upload
+        // this.upload = multer({ storage: multer.memoryStorage() });
+
+        // disk upload
+        this.upload = multer({ dest: "uploads/" });
     }
 
     filePublicUrl(filePath) {
         return this.publicUrl + ('/' + filePath).replaceAll('//', '/');
     }
 
-    movieFilePublicUrl(fileName, subFolder=null) {
+    movieFilePublicUrl(fileName, subFolder = null) {
         return this.filePublicUrl(fileName);
     }
 
@@ -75,6 +81,40 @@ class STORAGE_S3 extends STORAGE_BASE {
         }
     }
 
+    // async uploadFileUsingMemory(req, res) {
+    //     return new Promise((resolve, reject) => {
+    //         this.upload.single('file')(req, res, async (e) => {
+    //             if (e) {
+    //                 return reject({ success: false, message: e.message });
+    //             }
+
+    //             try {
+    //                 const params = {
+    //                     Bucket: envVar('AWS_BUCKET'),
+    //                     Key: envVar('MOVIES_FOLDER') + '/' + req.body.subFolder + '/' + req.file.originalname,
+    //                     Body: req.file.buffer,
+    //                     ContentType: req.file.mimetype
+    //                 };
+
+    //                 await this.s3.upload(params).promise();
+
+    //                 return resolve({
+    //                     success: true,
+    //                     message: 'The file was uploaded successfully.',
+    //                     url: this.filePublicUrl(params.Key),
+    //                     file_name: req.file.originalname,
+    //                     subFolder:req.body.subFolder,
+    //                     times:1,
+    //                     deletable: true
+    //                 })
+    //             }
+    //             catch (e) {
+    //                 return reject({ success: false, message: e.message })
+    //             }
+    //         });
+    //     })
+    // }
+
     async uploadFile(req, res) {
         return new Promise((resolve, reject) => {
             this.upload.single('file')(req, res, async (e) => {
@@ -83,10 +123,13 @@ class STORAGE_S3 extends STORAGE_BASE {
                 }
 
                 try {
+                    const fileStream = fs.createReadStream(req.file.path);
+
                     const params = {
                         Bucket: envVar('AWS_BUCKET'),
                         Key: envVar('MOVIES_FOLDER') + '/' + req.body.subFolder + '/' + req.file.originalname,
-                        Body: req.file.buffer,
+                        // Body: req.file.buffer, : memory upload
+                        Body: fileStream,
                         ContentType: req.file.mimetype
                     };
 
@@ -97,13 +140,20 @@ class STORAGE_S3 extends STORAGE_BASE {
                         message: 'The file was uploaded successfully.',
                         url: this.filePublicUrl(params.Key),
                         file_name: req.file.originalname,
-                        subFolder:req.body.subFolder,
-                        times:1,
+                        subFolder: req.body.subFolder,
+                        times: 1,
                         deletable: true
                     })
                 }
                 catch (e) {
                     return reject({ success: false, message: e.message })
+                }
+                finally {
+                    fs.unlink(req.file.path, (err) => {
+                        if (err) {
+                            console.error("Failed to remove file: " + req.file.path, err);
+                        }
+                    });
                 }
             });
         })

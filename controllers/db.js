@@ -1,5 +1,4 @@
 const { getDbAvailable, db } = require('../services/db');
-// const auth = require("../middleware/auth");
 
 class dbController {
     constructor() {

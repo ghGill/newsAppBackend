@@ -30,6 +30,10 @@ async function initDB() {
     return new Promise(async (resolve, reject) => {
         try {
             dbAvailable = await db.connect();
+            dbAvailable.git_info = {
+                branch: envVar('BACKEND_GIT_BRANCH') || "Unknown", 
+                commit:envVar('BACKEND_GIT_COMMIT') || "Unknown"
+            };
             
             const msg = dbAvailable.success ? "DB connection is available." : `DB connection failed. {${dbAvailable.message}}`;
             console.log(msg);
