@@ -19,6 +19,27 @@ app.use(express.json())
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public', 'app')));
 
+
+// Load build-time git info (written by CI) so /config will expose them
+try {
+  const fs = require('fs');
+  const p = '/etc/app/build-info.env';
+  if (fs.existsSync(p)) {
+    for (const line of fs.readFileSync(p, 'utf8').split(/\r?\n/)) {
+      if (!line || line.trim().startsWith('#')) continue;
+      const i = line.indexOf('=');
+      if (i === -1) continue;
+      const k = line.slice(0, i).trim();
+      const v = line.slice(i + 1).trim();
+      if (k && v && !process.env[k]) process.env[k] = v; // don’t overwrite if already set
+    }
+    console.log('Loaded /etc/app/build-info.env');
+  }
+} catch (e) {
+  console.log('build-info.env not loaded:', e.message);
+}
+
+
 if (envVar('STORAGE_TYPE') === 'DISK') {
     const moviesFolderName = envVar('MOVIES_FOLDER');
     app.use(`/${moviesFolderName}`, express.static(`${envVar('DISK_ROOT_PATH')}/${moviesFolderName}`));
