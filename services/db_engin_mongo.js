@@ -108,7 +108,7 @@ class MONGO_DB extends DB_BASE {
         try {
             const result = await this.db.collection(collectionName).insertOne(data);
 
-            return { success: true, message: `Data saved into collection ${collectionName}` };
+            return { success: true, message: `Data saved into collection ${collectionName}`, result };
         }
         catch (e) {
             return { success: false, message: e.message };
@@ -245,7 +245,8 @@ class MONGO_DB extends DB_BASE {
             data.editable = true;
             data.protected = false;
 
-            await this.insertRecord('users', data);
+            const newUser = await this.insertRecord('users', data);
+            data.id = newUser.result.insertedId;
 
             return { success: true, data:data }
         }

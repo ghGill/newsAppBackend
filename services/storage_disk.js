@@ -13,8 +13,11 @@ class STORAGE_DISK extends STORAGE_BASE {
         this.upload = multer({ storage: multer.memoryStorage() });
     }
 
-    filePublicPath(filePath) {
-        return path.join(this.rootPath, filePath);
+    filePublicPath(filePath, subFolder = null) {
+        if (subFolder)
+            return path.join(this.rootPath, filePath, subFolder);
+        else
+            return path.join(this.rootPath, filePath);
     }
 
     movieFilePublicPath(filePath, subFolder = null) {
@@ -55,7 +58,18 @@ class STORAGE_DISK extends STORAGE_BASE {
 
     async deleteFile(params) {
         try {
-            await fs.unlink(this.filePublicPath(params.filePath, params.subFolder));
+            await fs.unlink(this.filePublicPath(params.path, params.subFolder));
+
+            return { success: true };
+        }
+        catch (err) {
+            return { success: false, message: err.message };
+        }
+    }
+
+    async deleteFolder(params) {
+        try {
+            await fs.rm(this.filePublicPath(params.path, params.subFolder), { recursive: true, force: true });
 
             return { success: true };
         }

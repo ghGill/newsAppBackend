@@ -63,7 +63,20 @@ deleteMovieFile = async function (fileName, subFolder) {
     try {
         const filePath = getMoviesFolder(subFolder) + fileName;
 
-        await storage.deleteFile({filePath: filePath});
+        await storage.deleteFile({path: filePath});
+
+        return { success: true };
+    }
+    catch (e) {
+        return { success: false, message: e.message };
+    }
+}
+
+deleteUserMoviesFolder = async function (subFolder) {
+    try {
+        const folderPath = getMoviesFolder(subFolder);
+
+        await storage.deleteFolder({path: folderPath});
 
         return { success: true };
     }
@@ -76,5 +89,6 @@ module.exports = {
     getMoviesFolder,
     createUserMoviesFolder,
     getMoviesList,
-    deleteMovieFile
+    deleteMovieFile,
+    deleteUserMoviesFolder
 }

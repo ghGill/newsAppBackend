@@ -2,7 +2,7 @@ class STORAGE_BASE {
     constructor() {
     }
 
-    filePublicUrl(fileName) {
+    filePublicUrl(fileName, subFolder = null) {
     }
     
     movieFilePublicUrl(fileName, subFolder=null) {
@@ -15,6 +15,13 @@ class STORAGE_BASE {
     }
 
     async deleteFile(params) {
+    }
+
+    async deleteFolder(params) {
+    }
+
+    async getPresignUrl(req, res) {
+        return({ success:true, url:'/files/upload', presign:false });
     }
 
     async uploadFile(req, res) {

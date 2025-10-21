@@ -6,12 +6,12 @@ function envVar(key) {
 
         return process.env[key] || config.get(key);
     }
-    catch(e) {
+    catch (e) {
         return null;
     }
 }
 
-function getDBconnectionParams(dbKey=null) {
+function getDBconnectionParams(dbKey = null) {
     const dbProtocol = envVar("DB_PROTOCOL");
     if (dbProtocol) {
         const dbUser = envVar("DB_USER");
@@ -32,15 +32,26 @@ function getDBconnectionParams(dbKey=null) {
     else {
         const dbConnectionKey = envVar("DB_CONNECTION_KEY");
 
-        return envVar(dbKey ? dbKey : dbConnectionKey);
+        let returnValue = envVar(dbKey ? dbKey : dbConnectionKey);
+
+        if (typeof returnValue === "object") {
+            let newObj = {};
+            for (const key of Object.keys(returnValue)) {
+                newObj[key] = returnValue[key].replaceAll('{~}', '');
+            }
+
+            return newObj;
+        }
+        else
+            return returnValue;
     }
 }
 
-function getDBconnectionString(dbKey=null) {
-    const { protocol, user="", password="", host, port="", dbname } = getDBconnectionParams(dbKey);
+function getDBconnectionString(dbKey = null) {
+    const { protocol, user = "", password = "", host, port = "", dbname } = getDBconnectionParams(dbKey);
 
     let connectionStr = `${protocol}://`;
-    
+
     if (user)
         connectionStr += `${user}:${password}@`;
 

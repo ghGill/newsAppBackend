@@ -106,9 +106,9 @@ class MONGOOSE_DB extends DB_BASE {
 
     async insertRecord(model, data) {
         try {
-            await model.create(data);
+            const result = await model.create(data);
 
-            return { success: true, message: `Data saved into collection ${model.name}` };
+            return { success: true, message: `Data saved into collection ${model.name}`, result };
         }
         catch (e) {
             return { success: false, message: e.message };
@@ -246,7 +246,8 @@ class MONGOOSE_DB extends DB_BASE {
             data.editable = true;
             data.protected = false;
 
-            await this.insertRecord(UserModel, data);
+            const newUser = await this.insertRecord(UserModel, data);
+            data.id = newUser.result.id;
 
             return { success: true, data:data }
         }

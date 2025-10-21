@@ -69,10 +69,31 @@ class STORAGE_S3 extends STORAGE_BASE {
     }
 
     async deleteFile(params) {
-        const actionParams = this.getActionParams(params, { Key: params.filePath });
+        const actionParams = this.getActionParams(params, { Key: params.path });
 
         try {
             await this.s3.deleteObject(actionParams).promise();
+
+            return { success: true };
+        }
+        catch (err) {
+            return { success: false, message: err.message };
+        }
+    }
+
+    async deleteFolder(params) {
+        let actionParams = this.getActionParams(params, { Prefix: params.path });
+
+        try {
+            const listedObjects = await this.s3.listObjectsV2(actionParams).promise();
+            
+            if (listedObjects.Contents.length > 0) {
+                actionParams = this.getActionParams(params, { Delete: {
+                    Objects: listedObjects.Contents.map(obj => ({ Key: obj.Key }))
+                } });
+
+                await this.s3.deleteObjects(actionParams).promise();
+            }
 
             return { success: true };
         }

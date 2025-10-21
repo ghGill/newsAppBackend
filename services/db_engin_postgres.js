@@ -153,16 +153,17 @@ class PG_DB extends DB_BASE {
                 { where: { email: email } }
             );
 
-            const userPassword = user?.dataValues?.password;
+            if (user) {
+                const userPassword = user?.dataValues?.password;
 
-            const correctPassword = user.password ? (await this.comparePassword(password, user.password) || (password === userPassword)) : false;
+                const correctPassword = user.password ? (await this.comparePassword(password, user.password) || (password === userPassword)) : false;
 
-            if (correctPassword) {
-                return { success: true, data: user.dataValues }
+                if (correctPassword) {
+                    return { success: true, data: user.dataValues }
+                }
             }
-            else
-                return { success: false };
 
+            return { success: false };
         }
         catch (e) {
             return { success: false, message: e.message };
@@ -268,7 +269,9 @@ class PG_DB extends DB_BASE {
             data.editable = true;
             data.protected = false;
 
-            await this.insertRecord(User, data);
+            const newUser = await this.insertRecord(User, data);
+            
+            data.id = newUser.id;
 
             return { success: true, data: data }
         }

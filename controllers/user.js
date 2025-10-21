@@ -1,5 +1,6 @@
 const { db } = require('../services/db');
-// const auth = require("../middleware/auth");
+const { deleteUserMoviesFolder } = require('../services/movies');
+const storage = require('../services/storage');
 
 class userController {
     constructor() {
@@ -57,12 +58,20 @@ class userController {
 
     async delete(req, res) {
         try {
-            const { email } = req.body;
+            const { user } = req.body;
 
-            const result = await db.deleteUser(email);
+            let result = await db.deleteUser(user.email);
 
             if (result.success) {
-                res.status(200).json(result)
+                
+                result = await deleteUserMoviesFolder(user.id);
+                if (result.success) {
+                    res.status(200).json(result)
+                }
+                else {
+                    result.message = result.message ?? "Delete user movies folder failed.";
+                    res.status(500).json(result)
+                }
             }
             else {
                 result.message = result.message ?? "Delete user failed.";

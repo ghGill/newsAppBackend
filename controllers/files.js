@@ -5,6 +5,20 @@ class filesController {
     constructor() {
     }
 
+    async presign(req, res) {
+        try {
+            const result = await storage.getPresignUrl(req, res);
+
+            if (result.success)
+                res.status(200).json(result)
+            else
+                res.status(500).json(result)
+        }
+        catch (e) {
+            res.status(500).json({ success: false, message: e.message })
+        }
+    }
+
     async upload(req, res) {
         try {
             const result = await storage.uploadFile(req, res);
@@ -23,7 +37,7 @@ class filesController {
         const { fileName, subFolder } = req.body;
 
         try {
-            const result = await deleteMovieFile(fileName, subFolder/*getUserId()*/);
+            const result = await deleteMovieFile(fileName, subFolder);
 
             if (result.success) {
                 res.status(200).json(result)

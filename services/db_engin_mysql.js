@@ -11,8 +11,6 @@ class MYSQL_DB extends DB_BASE {
     async ensureDBexist() {
         const { user, password, host, port, dbname } = getDBconnectionParams();
 
-        console.log(user, password, host, port, dbname);
-        
         // Connect to MySQL server without specifying a database
         const connection = await mysql.createConnection({ host, user, password, port });
 
@@ -245,7 +243,8 @@ class MYSQL_DB extends DB_BASE {
                     (name, email, password, role, editable, protected)
                     VALUES ('${data.name}', '${data.email}', '${data.password}', '${data.role}', '1', '0');
                 `;
-            const result = await this.connection.execute(sql);
+            const [result] = await this.connection.execute(sql);
+            data.id = result.insertId;
 
             return { success: true, data: data }
         }
