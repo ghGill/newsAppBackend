@@ -17,7 +17,9 @@ class STORAGE_S3_PRESIGN extends STORAGE_S3 {
 
         const uploadURL = this.s3.getSignedUrl("putObject", params);
 
-        return({ success:true, url:uploadURL, presign:true });
+        const bucketFileUrl = `${envVar('MOVIES_FOLDER')}/${req.body.subFolder}/${req.body.fileName}`;
+
+        return({ success:true, url:uploadURL, presign:true, bucketUrl:this.movieFilePublicUrl(bucketFileUrl) });
     }
 }
 

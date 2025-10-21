@@ -58,7 +58,8 @@ class settingsController {
                 const folderFilesList = serverMoviesList.map(f => ({
                     file_name: f.name,
                     url: f.url,
-                    deletable: f.deletable
+                    deletable: f.deletable,
+                    subFolder: f.subFolder
                 }));
 
                 result.movies = folderFilesList;
